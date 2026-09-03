@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Prince Naley Alobari</title>
+<meta name="description" content="Digital contact card. Save my details in one tap.">
+<meta name="theme-color" content="#0B0F14">
+<meta property="og:title" content="Prince Naley Alobari">
+<meta property="og:description" content="Save my contact details in one tap.">
+<meta property="og:type" content="profile">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="icon" href="./icons/icon-192.png">
+<link rel="stylesheet" href="./assets/card.css">
+</head>
+<body>
+
+<main class="wrap">
+  <header class="head">
+    <div class="avatar" id="avatar"></div>
+    <h1 id="name"></h1>
+    <p class="role" id="role"></p>
+    <p class="tagline" id="tagline"></p>
+    <div class="place" id="place" hidden>
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span id="place-text"></span>
+    </div>
+  </header>
+
+  <a class="save" id="save" href="./me.vcf" download="contact.vcf">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+    <span>Save to my contacts</span>
+  </a>
+  <p class="note" id="note">Tap once, then choose Add to Contacts. Nothing to type in.</p>
+
+  <nav class="links" id="links"></nav>
+
+  <p class="foot" id="foot"></p>
+</main>
+
+<script src="./config.js"></script>
+<script>
+(function () {
+  var t = CARD.theme, r = document.documentElement.style;
+  r.setProperty('--bg', t.bg); r.setProperty('--card', t.card);
+  r.setProperty('--line', t.line); r.setProperty('--text', t.text);
+  r.setProperty('--muted', t.muted); r.setProperty('--accent', t.accent);
+  r.setProperty('--accent-ink', t.accentInk);
+  var meta = document.querySelector('meta[name=theme-color]');
+  if (meta) meta.content = t.bg;
+
+  document.title = CARD.displayName;
+  document.getElementById('name').textContent = CARD.displayName;
+
+  var av = document.getElementById('avatar');
+  if (CARD.usePhoto) {
+    var img = new Image();
+    img.src = './icons/photo.jpg';
+    img.alt = CARD.displayName;
+    img.onerror = function () { av.textContent = CARD.initials.toUpperCase(); };
+    av.appendChild(img);
+  } else {
+    av.textContent = CARD.initials.toUpperCase();
+  }
+
+  var role = CARD.title || '';
+  if (CARD.company) role += (role ? ' at ' : '') + '<b>' + CARD.company + '</b>';
+  var roleEl = document.getElementById('role');
+  if (role) roleEl.innerHTML = role; else roleEl.hidden = true;
+
+  var tag = document.getElementById('tagline');
+  if (CARD.tagline) tag.textContent = CARD.tagline; else tag.hidden = true;
+
+  if (CARD.location) {
+    document.getElementById('place-text').textContent = CARD.location;
+    document.getElementById('place').hidden = false;
+  }
+
+  var I = {
+    globe:  '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18Z"/>',
+    linked: '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10v7M8 7.2v.1M12 17v-4a2.5 2.5 0 0 1 5 0v4"/>',
+    phone:  '<path d="M4 4h4l2 5-2.5 1.5a12 12 0 0 0 6 6L15 14l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1Z"/>',
+    mail:   '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+    chat:   '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-5.2A8 8 0 1 1 21 12Z"/>',
+    cal:    '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'
+  };
+  var chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+
+  function lbl(base, tag) { return tag ? base + ' (' + tag + ')' : base; }
+
+  var rows = [
+    [CARD.website,  I.globe,  'Website',  CARD.tidy(CARD.website)],
+    [CARD.linkedin, I.linked, 'LinkedIn', CARD.tidy(CARD.linkedin)],
+    [CARD.telHref(CARD.phone),  I.phone, lbl('Call me', CARD.phoneLabel),  CARD.phone],
+    [CARD.waHref(CARD.whatsapp),  I.chat, lbl('WhatsApp', CARD.whatsappLabel),  CARD.pretty(CARD.whatsapp)],
+    [CARD.telHref(CARD.phone2), I.phone, lbl('Call me', CARD.phone2Label), CARD.phone2],
+    [CARD.waHref(CARD.whatsapp2), I.chat, lbl('WhatsApp', CARD.whatsapp2Label), CARD.pretty(CARD.whatsapp2)],
+    [CARD.email ? 'mailto:' + CARD.email : '', I.mail, 'Email', CARD.email],
+    [CARD.calendar, I.cal, 'Book a time', CARD.tidy(CARD.calendar)]
+  ];
+
+  var out = '';
+  rows.forEach(function (row) {
+    var href = row[0];
+    if (!href || /example\.com|your-profile/.test(href)) return;
+    var external = /^https?:/.test(href);
+    out += '<a class="link" href="' + href + '"' +
+           (external ? ' target="_blank" rel="noopener"' : '') + '>' +
+           '<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + row[1] + '</svg></span>' +
+           '<span class="txt"><span class="lbl">' + row[2] + '</span>' +
+           '<span class="sub">' + row[3] + '</span></span>' +
+           '<span class="chev">' + chev + '</span></a>';
+  });
+  document.getElementById('links').innerHTML = out;
+
+  document.getElementById('save').setAttribute(
+    'download', CARD.displayName.replace(/\s+/g, '-') + '.vcf');
+
+  document.getElementById('foot').textContent =
+    '© ' + new Date().getFullYear() + ' ' + CARD.displayName;
+
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('./sw.js').catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>

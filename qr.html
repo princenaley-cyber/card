@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>My QR</title>
+<meta name="theme-color" content="#0B0F14">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="icon" href="./icons/icon-192.png">
+<link rel="stylesheet" href="./assets/card.css">
+<style>
+  body{display:flex;flex-direction:column;min-height:100dvh}
+  .wrap{
+    flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:22px;
+    width:100%;
+  }
+  .panel{
+    background:#fff;border-radius:26px;
+    padding:22px;
+    box-shadow:0 24px 60px rgba(0,0,0,.55);
+    line-height:0;
+    transition:transform .18s ease;
+  }
+  .panel:active{transform:scale(.985)}
+  .panel canvas{
+    width:min(74vw,300px);height:auto;
+    image-rendering:pixelated;display:block;border-radius:4px;
+  }
+  .who{text-align:center}
+  .who .n{font-size:20px;font-weight:640;letter-spacing:-.01em}
+  .who .u{
+    font-size:12.5px;color:var(--muted);margin-top:5px;
+    word-break:break-all;max-width:32ch;
+  }
+  .hint{
+    color:var(--muted);font-size:13px;text-align:center;
+    max-width:30ch;margin:0;
+  }
+  .bar{display:flex;gap:10px;width:100%;max-width:340px}
+  .btn{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:13px 10px;border-radius:13px;
+    background:var(--card);border:1px solid var(--line);
+    color:var(--text);font:inherit;font-size:14px;font-weight:560;
+    text-decoration:none;cursor:pointer;
+  }
+  .btn:active{border-color:var(--accent)}
+  .btn svg{width:16px;height:16px;flex:none}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+
+  /* Tap the code to go maximum-contrast for a difficult camera. */
+  body.bright{background:#fff}
+  body.bright .who,body.bright .hint,body.bright .bar{display:none}
+  body.bright .panel{box-shadow:none;padding:8px}
+  body.bright .panel canvas{width:min(88vw,88vh)}
+
+  .warn{
+    position:fixed;left:12px;right:12px;bottom:12px;
+    background:#3A2A08;border:1px solid #6B5210;color:#F5E3AE;
+    font-size:12.5px;border-radius:12px;padding:11px 13px;text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <div class="panel" id="panel" title="Tap for maximum brightness">
+    <canvas id="qr"></canvas>
+  </div>
+
+  <div class="who">
+    <div class="n" id="n"></div>
+    <div class="u" id="u"></div>
+  </div>
+
+  <p class="hint">Point any phone camera at this. It opens my card, they tap once to save me.</p>
+
+  <div class="bar">
+    <a class="btn primary" href="./index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      Preview
+    </a>
+    <button class="btn" id="share">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M8 8l4-4 4 4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+      <span id="share-label">Share</span>
+    </button>
+    <button class="btn" id="png">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M8 12l4 4 4-4M5 19h14"/></svg>
+      PNG
+    </button>
+  </div>
+</main>
+
+<script src="./assets/qrcode.js"></script>
+<script src="./config.js"></script>
+<script>
+(function () {
+  var t = CARD.theme, r = document.documentElement.style;
+  r.setProperty('--bg', t.bg); r.setProperty('--card', t.card);
+  r.setProperty('--line', t.line); r.setProperty('--text', t.text);
+  r.setProperty('--muted', t.muted); r.setProperty('--accent', t.accent);
+  r.setProperty('--accent-ink', t.accentInk);
+
+  var url = CARD.publicUrl();
+  document.getElementById('n').textContent = CARD.displayName;
+  document.getElementById('u').textContent = CARD.tidy(url);
+
+  // --- draw the code -----------------------------------------------------
+  // typeNumber 0 = pick the smallest size that fits. 'M' error correction
+  // keeps it readable if the screen is smudged or partly glared out.
+  var qr = qrcode(0, 'M');
+  qr.addData(url);
+  qr.make();
+
+  var n = qr.getModuleCount();
+  var quiet = 4;                 // required white margin, in modules
+  var scale = 12;                // device pixels per module
+  var size = (n + quiet * 2) * scale;
+
+  var cv = document.getElementById('qr');
+  cv.width = cv.height = size;
+  var ctx = cv.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#000';
+  for (var row = 0; row < n; row++) {
+    for (var col = 0; col < n; col++) {
+      if (qr.isDark(row, col)) {
+        ctx.fillRect((col + quiet) * scale, (row + quiet) * scale, scale, scale);
+      }
+    }
+  }
+
+  // --- maximum-contrast mode --------------------------------------------
+  document.getElementById('panel').addEventListener('click', function () {
+    document.body.classList.toggle('bright');
+  });
+
+  // --- share -------------------------------------------------------------
+  var shareBtn = document.getElementById('share');
+  var shareLabel = document.getElementById('share-label');
+  shareBtn.addEventListener('click', function () {
+    if (navigator.share) {
+      navigator.share({ title: CARD.displayName, text: 'My contact card', url: url })
+        .catch(function () {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(function () {
+        shareLabel.textContent = 'Copied';
+        setTimeout(function () { shareLabel.textContent = 'Share'; }, 1600);
+      });
+    }
+  });
+
+  // --- save the code as an image (for email signatures, print, slides) ----
+  document.getElementById('png').addEventListener('click', function () {
+    var a = document.createElement('a');
+    a.download = CARD.displayName.replace(/\s+/g, '-') + '-QR.png';
+    a.href = cv.toDataURL('image/png');
+    a.click();
+  });
+
+  // --- guard rail --------------------------------------------------------
+  if (!/^https?:/.test(url)) {
+    var w = document.createElement('div');
+    w.className = 'warn';
+    w.textContent = 'This page is not being served over the web yet, so the code ' +
+                    'points at a local file. Publish the site, then reopen this screen.';
+    document.body.appendChild(w);
+  }
+
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('./sw.js').catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>

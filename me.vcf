@@ -1,0 +1,21 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Alobari;Prince Naley;;;
+FN:Prince Naley Alobari
+TITLE:Strategic Business Analyst
+ORG:NESO
+TEL;TYPE=CELL,VOICE,PREF:+447580760180
+TEL;TYPE=WORK,VOICE:+2349044851312
+EMAIL;TYPE=INTERNET,PREF:naleydeprince@gmail.com
+URL:https://princenaleyalobari.com
+item1.URL:https://www.linkedin.com/in/princenaleyalobari
+item1.X-ABLabel:LinkedIn
+X-SOCIALPROFILE;TYPE=linkedin:https://www.linkedin.com/in/princenaleyalobari
+item2.URL:https://wa.me/447580760180
+item2.X-ABLabel:WhatsApp (UK)
+item3.URL:https://wa.me/2349044851312
+item3.X-ABLabel:WhatsApp (Business)
+ADR;TYPE=WORK:;;;London;;;United Kingdom
+NOTE:Business transformation\, data and delivery. Energy and beyond.
+REV:2026-09-03T20:07:28Z
+END:VCARD
